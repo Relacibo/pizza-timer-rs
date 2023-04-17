@@ -2,6 +2,7 @@
 name = "pizza-timer-rs"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 
 [dependencies]
 gtk = { version = "0.6.4", package = "gtk4", features = ["v4_8"] }
