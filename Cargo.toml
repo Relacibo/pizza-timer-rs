@@ -6,4 +6,7 @@ license = "MIT"
 authors = ["Reinhard Bronner"]
 
 [dependencies]
-gtk = { version = "0.6.4", package = "gtk4", features = ["v4_8"] }
+chrono = "0.4.35"
+iced = { git = "https://github.com/iced-rs/iced.git", features = ["tokio"]}
+thiserror = "1.0.40"
+tokio = { version = "1.27.0", features = ["full"] }
