@@ -34,8 +34,6 @@ impl Default for AppView {
 
 impl AppView {
     pub fn update(&mut self, message: AppMessage) {
-        println!("state: {self:?}");
-        println!("message: {message:?}");
         let next_state = match (*self, message) {
             (AppView::Setup(s), AppMessage::Setup(m)) => {
                 let updated = s.update(m);
