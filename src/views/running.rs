@@ -39,7 +39,7 @@ impl RunningView {
         let RunningView {
             instant,
             instant_finish,
-            duration_start,
+            
             ..
         } = self;
         let duration = *instant_finish - *instant;

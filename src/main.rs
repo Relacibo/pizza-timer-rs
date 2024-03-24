@@ -1,7 +1,5 @@
-use std::{cell::RefCell, include_str, rc::Rc, time::Duration};
 
-use iced::{program, Command, Program, Settings, Subscription};
-use views::{setup::SetupView, AppView};
+use views::{AppView};
 mod views;
 
 #[tokio::main]
