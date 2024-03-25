@@ -1,6 +1,15 @@
+use std::{
+    cell::RefCell,
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
+
 use chrono::Duration;
 use iced::{keyboard, time, Element, Subscription, Theme};
+use rodio::Sink;
 use tokio::time::Instant;
+
+use crate::alarm::{self, Alarm};
 
 use self::{
     ringing::RingingView,
@@ -33,7 +42,7 @@ impl Default for AppView {
 }
 
 impl AppView {
-    pub fn update(&mut self, message: AppMessage) {
+    pub fn update(&mut self, message: AppMessage, alarm: &Arc<Mutex<Alarm>>) {
         let next_state = match (*self, message) {
             (AppView::Setup(s), AppMessage::Setup(m)) => {
                 let updated = s.update(m);
@@ -46,6 +55,7 @@ impl AppView {
             (AppView::Running(r), AppMessage::Tick(i)) => {
                 let updated = r.update(i);
                 if updated.finished {
+                    alarm.lock().unwrap().play();
                     Some(AppView::Ringing(RingingView::init(Instant::now())))
                 } else {
                     Some(AppView::Running(updated))
@@ -54,32 +64,36 @@ impl AppView {
             (AppView::Ringing(r), AppMessage::Tick(i)) => {
                 let updated = r.update(i);
                 if updated.finished {
+                    alarm.lock().unwrap().stop();
                     Some(Default::default())
                 } else {
                     Some(AppView::Ringing(updated))
                 }
             }
-            (_, AppMessage::Reset) => Some(Default::default()),
+            (_, AppMessage::Reset) => {
+                alarm.lock().unwrap().stop();
+                Some(Default::default())
+            }
             _ => None,
         };
         if let Some(s) = next_state {
             *self = s;
         }
-        println!("new state: {self:?}");
     }
     pub fn view<'a>(&'a self) -> Element<'a, AppMessage, Theme> {
         match self {
             AppView::Setup(s) => s.view().into(),
             AppView::Running(r) => r.view().into(),
-            AppView::Ringing(r) => r.view().into(),
+            AppView::Ringing(r, ..) => r.view().into(),
         }
     }
 
     pub fn subscription(&self) -> Subscription<AppMessage> {
         let sub = match self {
             AppView::Running(..) | AppView::Ringing(..) => {
-                let action = time::every(Duration::try_milliseconds(100).unwrap().to_std().unwrap())
-                    .map(|i| AppMessage::Tick(i.into()));
+                let action =
+                    time::every(Duration::try_milliseconds(100).unwrap().to_std().unwrap())
+                        .map(|i| AppMessage::Tick(i.into()));
                 Some(action)
             }
             AppView::Setup(..) => {
